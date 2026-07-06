@@ -2,12 +2,13 @@ import {useState, useEffect} from 'react';
 import TodoList from './components/TodoList';
 import TodoForm from './components/TodoForm';
 import * as todoApi from './api/todoApi';
+import Todo from './types/Todo';
 import "./App.css";
 
 export default function Home() {
-  const [todos, setTodos] = useState([]);
+  const [todos, setTodos] = useState<Array<Todo>>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadTodos();
@@ -27,7 +28,7 @@ export default function Home() {
     }
   };
 
-  const addTodo = async (title) => {
+  const addTodo = async (title: string) => {
     try {
       const newTodo = await todoApi.createTodo(title);
       setTodos([...todos, newTodo]);
@@ -38,10 +39,17 @@ export default function Home() {
     }
   }
 
-  const toggleTodo = async (id) => {
+  const toggleTodo = async (id: number) => {
     try {
       const todo = todos.find(t => t.id == id);
-      const updated = await todoApi.updateTodo(id, {completed: !todo.completed});
+      if (!todo) {
+	throw("Cannot find Todo with id: " + id);
+      }
+      const newTodo = {
+	...todo,
+	completed: !todo.completed
+      };
+      const updated = await todoApi.updateTodo(id, newTodo);
       setTodos(todos.map(t => t.id == id ? updated : t))
     } catch (err) {
       setError("Error while toggling todo!");
@@ -49,7 +57,7 @@ export default function Home() {
     } 
   }
 
-  const deleteTodo = async (id) => {
+  const deleteTodo = async (id: number) => {
     try {
       await todoApi.deleteTodo(id);
       setTodos(todos.filter(t => t.id != id));

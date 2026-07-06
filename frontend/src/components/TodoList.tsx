@@ -1,6 +1,13 @@
 import TodoItem from './TodoItem';
+import Todo from '../types/Todo';
 
-function TodoList ({todos, onToggle, onDelete}) {
+function TodoList (
+  {todos, onToggle, onDelete}:
+  {
+    todos: Todo[],
+    onToggle: (id: number) => Promise<void>,
+    onDelete: (id: number) => Promise<any>,
+  }) {
   if (todos.length == 0) {
     return (
 	<div> No tods found. Create one!</div>

@@ -1,0 +1,1 @@
+{"root":["./src/App.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/api/todoApi.ts","./src/components/TodoForm.tsx","./src/components/TodoItem.tsx","./src/components/TodoList.tsx","./src/types/Todo.tsx"],"version":"6.0.3"}

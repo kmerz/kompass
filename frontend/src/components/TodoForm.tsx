@@ -1,12 +1,17 @@
 import { useState } from 'react';
+import Todo from '../types/Todo';
 
-function TodoForm({ onAdd }) {
+function TodoForm({
+  onAdd,
+}: {
+  onAdd: (title: string) => Promise<void>;
+}) {
   const [title, setTitle] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (title.trim == '') { return };
+    if (title.trim() == '') { return };
 
     onAdd(title);
 
