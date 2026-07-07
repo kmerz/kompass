@@ -6,7 +6,7 @@ body {
   min-height: 100%;
 }
 
-.main {
+.todo-main {
   width: min(600px, 90vw);
   
   display: grid;
