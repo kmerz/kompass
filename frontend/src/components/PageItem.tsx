@@ -10,11 +10,13 @@ function PageItem(
   }) {
   return (
       <li className={`page-item`}>
-	<Link to={`/pages/${page.id}`}>{page.title}</Link>
+        <Link to={`/pages/${page.id}`}>
+	  {page.title}
+        </Link>
 	<button
 	  onClick={() => onDelete(page.id)}
 	  aria-label="Delete page"
-	  >x
+	  >🗑
         </button>
       </li>
   );

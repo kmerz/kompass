@@ -26,7 +26,7 @@ function TodoForm({
 	  onChange={(e) => setTitle(e.target.value)}
 	/>
 	<button type="submit">
-	  Add
+	  Create
 	</button>
       </form>
   );

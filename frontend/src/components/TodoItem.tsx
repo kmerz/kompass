@@ -14,11 +14,11 @@ function TodoItem(
 	  checked={todo.completed}
 	  onChange={() => onToggle(todo.id)}
 	  />
-	<span>{todo.title}</span>
+	<span className="todo-title">{todo.title}</span>
 	<button
 	  onClick={() => onDelete(todo.id)}
 	  aria-label="Delete todo"
-	  >x
+	  >🗑
         </button>
       </li>
   );

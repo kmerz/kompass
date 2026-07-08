@@ -3,6 +3,8 @@ import TodoPage from './components/TodoPage'
 import WikiPage from './components/WikiPage'
 import NewPage from './components/NewPage'
 import ViewPage from './components/ViewPage'
+import logo from "./assets/logo.png";
+
 import "./App.css";
 
 export default function Home() {
@@ -10,8 +12,9 @@ export default function Home() {
   <>
     <nav className="navbar">
       <div className="navbar-title">
-       Kompass
-     </div>
+        <img src={logo} alt="Kompass logo" />
+        <NavLink className="kompass" to="/">Kompass</NavLink>
+      </div>
 
      <div className="navbar-links">
        <NavLink to="/">Todos</NavLink>
