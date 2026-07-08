@@ -27,25 +27,6 @@ export default function WikiPage() {
     }
   };
 
-  const updatePage = async (id: number, title: string, content: string) => {
-    try {
-      const page = pages.find(t => t.id == id);
-      if (!page) {
-	throw("Cannot find Page with id: " + id);
-      }
-      const newPage = {
-	...page,
-	title: title,
-	content: content
-      };
-      const updated = await kompassApi.updatePage(id, newPage);
-      setPages(pages.map(t => t.id == id ? updated : t))
-    } catch (err) {
-      setError("Error while toggling page!");
-      console.log(err);
-    } 
-  }
-
   const deletePage = async (id: number) => {
     try {
       await kompassApi.deletePage(id);
@@ -66,7 +47,6 @@ export default function WikiPage() {
       <PageList 
         pages={pages}
         onDelete={deletePage}
-        onUpdate={updatePage}
       />
     </div>
   );

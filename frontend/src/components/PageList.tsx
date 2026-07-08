@@ -5,7 +5,6 @@ function PageList (
   {pages, onUpdate, onDelete}:
   {
     pages: Page[],
-    onUpdate: (id: number, title: string, content: string) => Promise<void>,
     onDelete: (id: number) => Promise<any>,
   }) {
   if (pages.length == 0) {

@@ -48,3 +48,8 @@ export const deletePage = async (id: number): Promise<any> => {
   const response = await axios.delete(`${API_URL}/pages/${id}`);
   return response.data;
 }
+
+export const getTitle = async (id: number): Promise<string> => {
+  const response = await axios.get(`${API_URL}/pages/${id}/title`);
+  return response.data;
+}

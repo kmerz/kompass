@@ -84,6 +84,7 @@ async fn main() {
     .route("/pages/{id}", get(get_page))
     .route("/pages/{id}", put(update_page))
     .route("/pages/{id}", delete(delete_page))
+    .route("/pages/{id}/title", get(get_title))
     .with_state(state)
     .layer(cors);
 
@@ -136,6 +137,19 @@ async fn get_page(
         .cloned()
         .map(Json)
         .ok_or(StatusCode::NOT_FOUND)
+}
+
+async fn get_title(
+    Path(id): Path<u64>,
+    State(state): State<AppState>,
+) -> Result<Json<String>, StatusCode> {
+    let pages = state.pages.lock().unwrap();
+
+    pages
+      .get(&id)
+      .cloned()
+      .map(|p| Json(p.title))
+      .ok_or(StatusCode::NOT_FOUND)
 }
 
 async fn update_page(
