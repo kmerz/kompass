@@ -2,7 +2,7 @@ import axios from 'axios';
 import Todo from '../types/Todo';
 import Page from '../types/Page';
 
-const API_URL = "http://localhost:3001";
+const API_URL = "http://192.168.6.175:3001/api";
 
 export const getAllTodos = async (): Promise<Todo[]> => {
   const response = await axios.get(`${API_URL}/todos`);
@@ -49,7 +49,7 @@ export const deletePage = async (id: number): Promise<any> => {
   return response.data;
 }
 
-export const getTitle = async (id: number): Promise<string> => {
-  const response = await axios.get(`${API_URL}/pages/${id}/title`);
+export const getPageByTitle = async (title: string): Promise<Page> => {
+  const response = await axios.get(`${API_URL}/pages/by-title/${encodeURIComponent(title)}`);
   return response.data;
-}
+};

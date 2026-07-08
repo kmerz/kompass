@@ -33,32 +33,24 @@ export default function ViewPage () {
     }
   };
 
-  const PAGE_LINK_REGEX = /\$(\d+)/g;
+  const WIKI_LINK_REGEX = /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
 
   const resolvePageLinks = async (markdown: string): Promise<string> => {
-    const matches = [...markdown.matchAll(PAGE_LINK_REGEX)];
-
-    if (matches.length === 0) {
-      return markdown;
-    }
+    const matches = [...markdown.matchAll(WIKI_LINK_REGEX)];
 
     let result = markdown;
 
-    const ids = [...new Set(matches.map((m) => Number(m[1])))];
-    const titles = new Map<number, string>();
+    for (const match of matches) {
+      const fullMatch = match[0];
+      const pageTitle = match[1];
+      const label = match[2] ?? pageTitle;
 
-    await Promise.all(
-      ids.map(async (id) => {
-        titles.set(id, await kompassApi.getTitle(id));
-      })
-    );
+      const page = await kompassApi.getPageByTitle(pageTitle);
 
-    for (const id of ids) {
-      const title = titles.get(id)!;
-      result = result.replaceAll(
-        `$${id}`,
-        `[${title}](/pages/${id})`
-      );
+      result = result.replace(
+	  fullMatch,
+	  `[${label}](/pages/${page.id})`
+	  );
     }
 
     return result;

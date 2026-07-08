@@ -1,0 +1,11 @@
+CREATE TABLE todos (
+    id INTEGER PRIMARY KEY,
+    title TEXT NOT NULL,
+    completed BOOLEAN NOT NULL DEFAULT 0
+);
+
+CREATE TABLE pages(
+    id INTEGER PRIMARY KEY,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL
+);
