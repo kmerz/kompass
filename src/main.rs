@@ -3,13 +3,65 @@ use axum::{
     extract::{Path, State},
     http::Method,
     http::StatusCode,
+    http::Request,
+    http::HeaderMap,
+    http::HeaderValue,
+    http::header,
+    middleware::Next,
+    body::Body,
+    middleware::from_fn_with_state,
+    response::Response,
     routing::{delete, get, post, put},
+    response::IntoResponse,
 };
-use tower_http::cors::{Any, CorsLayer};
+
+use axum_extra::extract::cookie::{
+    Cookie,
+    SameSite,
+    CookieJar,
+};
+
+use std::sync::Arc;
+
+use argon2::{
+    password_hash::PasswordHash,
+    Argon2,
+    PasswordVerifier,
+};
+
+use tower_http::cors::{CorsLayer};
 
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 use std::net::SocketAddr;
+
+use jsonwebtoken::{encode, EncodingKey, Header, decode, DecodingKey, Validation};
+
+use std::time::{SystemTime, UNIX_EPOCH};
+
+#[derive(Deserialize)]
+struct LoginRequest {
+    username: String,
+    password: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Claims {
+    sub: String,
+    exp: usize,
+}
+
+#[derive(Deserialize)]
+struct Config {
+    jwt_secret: String,
+    users: Vec<UserConfig>,
+}
+
+#[derive(Deserialize)]
+struct UserConfig {
+    username: String,
+    password_hash: String,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 struct Page {
@@ -37,6 +89,11 @@ struct Todo {
     completed: bool,
 }
 
+#[derive(Serialize)]
+struct Me {
+  app: String,
+}
+
 #[derive(Debug, Deserialize)]
 struct CreateTodo {
     title: String,
@@ -50,21 +107,42 @@ struct UpdateTodo {
 
 #[derive(Clone)]
 struct AppState {
-    db: SqlitePool,
+   db: SqlitePool,
+   config: Arc<Config>,
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> anyhow::Result<()> {
+    let config_text = std::fs::read_to_string("config.toml")?;
+    let config: Config = toml::from_str(&config_text)?;
+
     let pool = SqlitePool::connect("sqlite:data.db").await.unwrap();
 
-    let state = AppState { db: pool.clone() };
+    let state = AppState {
+      db: pool.clone(),
+      config: Arc::new(config),
+    };
 
     let cors = CorsLayer::new()
-        .allow_origin(Any)
-        .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
-        .allow_headers(Any);
+    .allow_origin(
+        "http://localhost:5173"
+            .parse::<HeaderValue>()
+            .unwrap(),
+    )
+    .allow_methods([
+        Method::GET,
+        Method::POST,
+        Method::PUT,
+        Method::DELETE,
+    ])
+    .allow_headers([
+        header::CONTENT_TYPE,
+        header::ACCEPT,
+    ])
+    .allow_credentials(true);
 
-    let app = Router::new()
+    let protected = Router::new()
+        .route("/api/me", get(me))
         .route("/api/todos", post(create_todo))
         .route("/api/todos", get(list_todos))
         .route("/api/todos/{id}", get(get_todo))
@@ -76,10 +154,19 @@ async fn main() {
         .route("/api/pages/{id}", put(update_page))
         .route("/api/pages/{id}", delete(delete_page))
         .route("/api/pages/by-title/{title}", get(get_by_title))
-        .with_state(state)
-        .layer(cors);
+	.route("/api/logout", post(logout))
+	.route_layer(from_fn_with_state(
+          state.clone(),
+          auth_middleware,
+        ));
+    
+    let app = Router::new()
+      .route("/api/login", post(login))
+      .merge(protected)
+      .with_state(state)
+      .layer(cors);
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3001));
+    let addr = SocketAddr::from(([127, 0, 0, 1], 3001));
 
     println!("Server running on http://{}", addr);
 
@@ -89,6 +176,8 @@ async fn main() {
         .with_graceful_shutdown(shutdown_signal())
         .await;
     pool.close().await;
+    
+    Ok(())
 }
 
 async fn create_page(
@@ -220,6 +309,14 @@ async fn delete_page(Path(id): Path<i64>, State(state): State<AppState>) -> Stat
     }
 }
 
+async fn me(
+    State(state): State<AppState>
+) -> Result<Json<Me>, StatusCode> {
+  let me = Me { app: "Me".to_string() };
+  Ok(Json(me))
+  
+}
+
 async fn create_todo(
     State(state): State<AppState>,
     Json(payload): Json<CreateTodo>,
@@ -332,4 +429,144 @@ async fn shutdown_signal() {
         .expect("failed to listen for Ctrl+C");
 
     println!("shutdown signal received");
+}
+
+
+async fn auth_middleware(
+    State(state): State<AppState>,
+    jar: CookieJar,
+    request: Request<Body>,
+    next: Next,
+) -> Result<Response, StatusCode> {
+
+    let token = jar
+        .get("auth_token")
+        .ok_or(StatusCode::UNAUTHORIZED)?
+        .value();
+
+
+    verify_jwt(
+        token,
+        &state.config.jwt_secret,
+    )
+    .map_err(|_| StatusCode::UNAUTHORIZED)?;
+
+
+    Ok(next.run(request).await)
+}
+
+
+fn create_jwt(
+    username: &str,
+    secret: &str,
+) -> Result<String, jsonwebtoken::errors::Error> {
+
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+
+    let claims = Claims {
+        sub: username.to_string(),
+        exp: (now + 60 * 60 * 24) as usize, // 24 hours
+    };
+
+    encode(
+        &Header::default(),
+        &claims,
+        &EncodingKey::from_secret(secret.as_bytes()),
+    )
+}
+
+fn verify_password(password: &str, hash: &str) -> bool {
+
+    let parsed_hash = match PasswordHash::new(hash) {
+        Ok(h) => h,
+        Err(_) => return false,
+    };
+
+    Argon2::default()
+        .verify_password(password.as_bytes(), &parsed_hash)
+        .is_ok()
+}
+
+fn verify_jwt(
+    token: &str,
+    secret: &str,
+) -> Result<Claims, jsonwebtoken::errors::Error> {
+
+    let token_data = decode::<Claims>(
+        token,
+        &DecodingKey::from_secret(secret.as_bytes()),
+        &Validation::default(),
+    )?;
+
+    Ok(token_data.claims)
+}
+
+async fn login(
+    State(state): State<AppState>,
+    Json(login): Json<LoginRequest>,
+) -> Result<impl IntoResponse, StatusCode> {
+
+    let user = state
+        .config
+        .users
+        .iter()
+        .find(|u| u.username == login.username)
+        .ok_or(StatusCode::UNAUTHORIZED)?;
+
+
+    if !verify_password(
+        &login.password,
+        &user.password_hash,
+    ) {
+        return Err(StatusCode::UNAUTHORIZED);
+    }
+
+
+    let token = create_jwt(
+        &user.username,
+        &state.config.jwt_secret,
+    )
+    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+
+    let cookie = Cookie::build(("auth_token", token))
+        .http_only(true)
+        .secure(false) // true when using HTTPS
+        .same_site(SameSite::Lax)
+        .path("/")
+        .max_age(time::Duration::hours(24))
+        .build();
+
+
+    let mut headers = HeaderMap::new();
+
+    headers.insert(
+        "Set-Cookie",
+        cookie
+            .to_string()
+            .parse()
+            .unwrap(),
+    );
+
+
+    Ok((headers, Json("ok")))
+}
+
+async fn logout() -> impl IntoResponse {
+    let mut cookie = Cookie::new("auth_token", "");
+    cookie.set_http_only(true);
+    cookie.set_same_site(SameSite::Lax);
+    cookie.set_path("/");
+    cookie.make_removal();
+
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        header::SET_COOKIE,
+        cookie.to_string().parse().unwrap(),
+    );
+
+    (StatusCode::OK, headers)
 }

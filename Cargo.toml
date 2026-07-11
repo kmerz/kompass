@@ -5,7 +5,8 @@ edition = "2024"
 
 [dependencies]
 axum = "0.8"
-tower-http = { version = "0.5", features = ["cors"] }
+axum-extra = { version = "0.10", features = ["cookie"] }
+tower-http = { version = "0.6", features = ["cors"] }
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -14,3 +15,8 @@ sqlx = { version = "0.8", features = [
     "sqlite",
     "macros"
 ] }
+jsonwebtoken = "9"
+argon2 = "0.5"
+toml = "0.8"
+anyhow = "1"
+time = "0.3.47"
