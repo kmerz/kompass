@@ -10,8 +10,6 @@ const api = axios.create({
   withCredentials: true,
 });
 
-;
-
 export const login = async (username: string, password: string): Promise<void> => {
   await api.post("/login", {
     username,

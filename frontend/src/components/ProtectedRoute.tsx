@@ -1,14 +1,18 @@
 import { Navigate } from "react-router-dom";
+import { use } from "react";
+
+import AuthenticatedContext from '../context/AuthenticatedContext';
 
 interface ProtectedRouteProps {
-  isAuthenticated: boolean;
   children: React.ReactNode;
 }
 
 export default function ProtectedRoute({
-  isAuthenticated,
   children,
 }: ProtectedRouteProps) {
+
+  const { isAuthenticated } = use<AuthenticatedType>(AuthenticatedContext);
+  console.log(`isAuthenticated in ProtectedRoutePage: ${isAuthenticated}`);
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }

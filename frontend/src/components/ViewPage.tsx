@@ -1,6 +1,6 @@
 import Page from '../types/Page'
 import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -80,6 +80,30 @@ export default function ViewPage () {
   const onClickEdit = () => {
     setIsEdit(!isEdit);
   }
+
+  const MdLink =({ href, children, ...rest }) => {
+    const external = /^https?:\/\//.test(href);
+    const handleClick = () => external && window.analytics.track('outbound', { href });
+
+    return (
+	<>
+          {external &&
+            <a
+              href={href}
+              {...rest}
+              target={external ? '_blank' : undefined}
+              rel={external ? 'noopener noreferrer' : undefined}
+              onClick={handleClick}
+            >
+              {children}
+              {external && '↗'}
+            </a>}
+          {!external && 
+            <Link to={href}>{children}</Link>}
+	</>
+    );
+  }
+
 
   return (
   <div className="view-page">

@@ -1,5 +1,5 @@
 import { NavLink, Route, Routes } from 'react-router-dom'
-import {useState, useEffect} from 'react'
+import {useState, useEffect, use} from 'react'
 import {useNavigate } from 'react-router-dom'
 import TodoPage from './components/TodoPage'
 import WikiPage from './components/WikiPage'
@@ -8,32 +8,21 @@ import ViewPage from './components/ViewPage'
 import LoginPage from './components/LoginPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import logo from "./assets/logo.png"
+import AuthenticatedContext from "./context/AuthenticatedContext";
 
 import * as kompassApi from "./api/kompassApi";
 
 import "./App.css";
 
 export default function Home() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  useEffect(() => {
-      console.log("useEffect");
-      async function checkAuth() {
-        try {
-          await kompassApi.me();
-          setIsAuthenticated(true);
-        } catch(err){
-          setIsAuthenticated(false);
-        }
-      }
-
-      checkAuth();
-  }, []);
+  const { isAuthenticated, setIsAuthenticated } = use<AuthenticatedType>(AuthenticatedContext);
 
   const navigate = useNavigate();
 
   const handleLogout = async () => {
     await kompassApi.logout();
+    setIsAuthenticated(false);
     navigate("/login");
   };
 
