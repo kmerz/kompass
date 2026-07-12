@@ -2,10 +2,9 @@ import Page from '../types/Page'
 import {Link} from 'react-router-dom'
 
 function PageItem(
-  { page, onUpdate, onDelete }:
+  { page, onDelete }:
   {
     page: Page,
-    onUpdate: (id: number, title: string, content: string) => Promise<void>,
     onDelete: (id: number) => Promise<void>,
   }) {
   return (

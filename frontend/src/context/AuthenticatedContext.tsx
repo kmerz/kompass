@@ -1,8 +1,8 @@
 import { createContext } from 'react'
 
-interface AuthenticatedType {
+export interface AuthenticatedType {
   isAuthenticated: boolean,
-  setIsAuthenticated: (boolean) => void,
+  setIsAuthenticated: (state: boolean) => void,
 }
 
 const AuthenticatedContext = createContext<AuthenticatedType | null>(null);

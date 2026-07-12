@@ -2,7 +2,7 @@ import PageItem from './PageItem';
 import Page from '../types/Page';
 
 function PageList (
-  {pages, onUpdate, onDelete}:
+  {pages, onDelete}:
   {
     pages: Page[],
     onDelete: (id: number) => Promise<any>,
@@ -20,7 +20,6 @@ function PageList (
 		<PageItem
 		  key={t.id}
 		  page={t}
-		  onUpdate={onUpdate}
 		  onDelete={onDelete}
 		  />
 	  ))

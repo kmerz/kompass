@@ -2,7 +2,7 @@ import {useState, useEffect} from 'react';
 import TodoList from './TodoList';
 import TodoForm from './TodoForm';
 import * as todoApi from '../api/kompassApi';
-import Todo from './types/Todo';
+import Todo from '../types/Todo';
 
 export default function TodoPage() {
   const [todos, setTodos] = useState<Array<Todo>>([]);

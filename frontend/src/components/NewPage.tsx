@@ -10,7 +10,7 @@ export default function NewPage() {
   const navigate = useNavigate();
 
 
-  const addPage = async (title: string, content: string) => {
+  const addPage = async (title: string, content: string): Promise<void> => {
     try {
       const newPage = await kompassApi.createPage(title, content);
       setError(null);
@@ -26,10 +26,8 @@ export default function NewPage() {
       <h1> Wiki </h1>
       {error && <div className="error">{error}</div>}
 
-      <PageForm 
-        onSubmit={async (page: Page) => addPage(page.title, page.content)}
-	submitLabel="Create"
-      />
+      <PageForm onSubmit={async (page: Omit<Page, "id">) =>
+        addPage(page.title, page.content)} submitLabel="Create" />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import AuthenticatedContext from '../context/AuthenticatedContext';
 
-import * as kompassApi from "../api/kompassApi.ts";
+import * as kompassApi from "../api/kompassApi";
 
 interface AuthenticatedProviderProps {
   children: React.ReactNode,
@@ -10,11 +10,11 @@ interface AuthenticatedProviderProps {
 const AuthenticatedProvider = ({children}: AuthenticatedProviderProps) => {
   const [isAuthenticated, setXIsAuthenticated] = useState(false);  
 
-  const setIsAuthenticated = (state) => {
+  const setIsAuthenticated = (state: boolean) => {
     console.log(`state: ${state}`);
     console.trace();
     setXIsAuthenticated(state);
-  }
+  };
 
   useEffect(() => {
       async function checkAuth() {

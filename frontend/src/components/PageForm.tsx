@@ -2,9 +2,9 @@ import { useState } from 'react';
 import Page from '../types/Page';
 
 interface PageFormProps {
-initialPage?: Page;
-onSubmit: (page: Omit<Page, 'id'>) => Promise<void>;
-submitLable?: string;
+  initialPage?: Page;
+  onSubmit: (page: Omit<Page, 'id'>) => Promise<void>;
+  submitLabel?: string;
 }
 
 function PageForm({
@@ -45,7 +45,7 @@ function PageForm({
 	<label>Content
 	<textarea
 	  value={content}
-	  onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setContent(e.target.value )}}
+	  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => { setContent(e.target.value )}}
 	  />
 	</label> 
 	<button type="submit">

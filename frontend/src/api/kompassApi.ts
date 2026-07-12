@@ -51,12 +51,12 @@ export const me = async (): Promise<Page[]> => {
   return response.data;
 };
 
-export const getPage = async (id: number): Promise<Page[]> => {
+export const getPage = async (id: number): Promise<Page> => {
   const response = await api.get(`${API_URL}/pages/${id}`);
   return response.data;
 };
 
-export const createPage = async (title: string, content): Promise<Page> => {
+export const createPage = async (title: string, content: string): Promise<Page> => {
   const response = await api.post(`${API_URL}/pages`, { title, content });
   return response.data;
 };

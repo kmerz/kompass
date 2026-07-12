@@ -9,7 +9,7 @@ import PageForm from './PageForm';
 import * as kompassApi from '../api/kompassApi';
 
 export default function ViewPage () {
-  const { id } = useParams()
+  const { id } = useParams();
 
   const [page, setPage] = useState<Page | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -18,10 +18,21 @@ export default function ViewPage () {
 
   useEffect(() => { loadPage(id) }, []);
 
-  const loadPage = async (id: number) => {
+  const loadPage = async (id: string | undefined) => {
     try {
+      if (!id) {
+        setError("Error loading page");
+        console.error("id is undefined");
+        return;
+      }
+      
+      const parsedId = Number(id);
+      if (isNaN(parsedId)) {
+          setError("Id is not a number");
+          return;
+      }
       setLoading(true);
-      const data = await kompassApi.getPage(id);
+      const data = await kompassApi.getPage(parsedId);
       data.content = await resolvePageLinks(data.content);
       setPage(data);
       setError(null);
@@ -73,7 +84,11 @@ export default function ViewPage () {
     } 
   }
 
-  const onUpdate = async (newPage: Page) => {
+  const onUpdate = async (newPage: Omit<Page, 'id'>) => {
+    if (!page) {
+        setError("No page found")
+        return;
+    }
     return updatePage(page.id, newPage.title, newPage.content);
   };
 
@@ -81,9 +96,8 @@ export default function ViewPage () {
     setIsEdit(!isEdit);
   }
 
-  const MdLink =({ href, children, ...rest }) => {
+  const MdLink =({ href, children, ...rest }: {href: string, children: React.ReactNode}) => {
     const external = /^https?:\/\//.test(href);
-    const handleClick = () => external && window.analytics.track('outbound', { href });
 
     return (
 	<>
@@ -93,7 +107,6 @@ export default function ViewPage () {
               {...rest}
               target={external ? '_blank' : undefined}
               rel={external ? 'noopener noreferrer' : undefined}
-              onClick={handleClick}
             >
               {children}
               {external && '↗'}

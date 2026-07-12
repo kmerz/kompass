@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom";
 import * as kompassApi from "../api/kompassApi";
 import LoginForm from "./LoginForm";
 
-interface LoginFormProps {
-  setIsAuthenticated: (bool) => void,
+interface LoginPageProps {
+  setIsAuthenticated: (authenticated: boolean) => void;
 }
-export default function LoginPage({ setIsAuthenticated }:{ LoginFormProps }) {
+
+const LoginPage = ({ setIsAuthenticated }: LoginPageProps) => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -28,4 +29,6 @@ export default function LoginPage({ setIsAuthenticated }:{ LoginFormProps }) {
       <LoginForm onLogin={onLogin} />
     </div>
   );
-}
+};
+
+export default LoginPage;
