@@ -5,6 +5,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 import PageForm from './PageForm';
+import PageRenderMarkdown from './PageRenderMarkdown';
 
 import * as kompassApi from '../api/kompassApi';
 
@@ -33,7 +34,6 @@ export default function ViewPage () {
       }
       setLoading(true);
       const data = await kompassApi.getPage(parsedId);
-      data.content = await resolvePageLinks(data.content);
       setPage(data);
       setError(null);
     } catch(err) {
@@ -44,38 +44,14 @@ export default function ViewPage () {
     }
   };
 
-  const WIKI_LINK_REGEX = /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
-
-  const resolvePageLinks = async (markdown: string): Promise<string> => {
-    const matches = [...markdown.matchAll(WIKI_LINK_REGEX)];
-
-    let result = markdown;
-
-    for (const match of matches) {
-      const fullMatch = match[0];
-      const pageTitle = match[1];
-      const label = match[2] ?? pageTitle;
-
-      const page = await kompassApi.getPageByTitle(pageTitle);
-
-      result = result.replace(
-	  fullMatch,
-	  `[${label}](/pages/${page.id})`
-	  );
-    }
-
-    return result;
-  }
-
   const updatePage = async (id: number, title: string, content: string) => {
     try {
       const newPage = {
         id: id,
-	title: title,
-	content: content
+	      title: title,
+	      content: content
       };
       const updated = await kompassApi.updatePage(id, newPage);
-      newPage.content = await resolvePageLinks(newPage.content);
       setPage(newPage);
       setIsEdit(false);
     } catch (err) {
@@ -96,28 +72,6 @@ export default function ViewPage () {
     setIsEdit(!isEdit);
   }
 
-  const MdLink =({ href, children, ...rest }: {href: string, children: React.ReactNode}) => {
-    const external = /^https?:\/\//.test(href);
-
-    return (
-	<>
-          {external &&
-            <a
-              href={href}
-              {...rest}
-              target={external ? '_blank' : undefined}
-              rel={external ? 'noopener noreferrer' : undefined}
-            >
-              {children}
-              {external && '↗'}
-            </a>}
-          {!external && 
-            <Link to={href}>{children}</Link>}
-	</>
-    );
-  }
-
-
   return (
   <div className="view-page">
     {error && <div className="error">{error}</div>}
@@ -127,9 +81,7 @@ export default function ViewPage () {
       <div className="view-main">
       <h1 className="page-title">{page.title}</h1>
       <div className="page-content">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-          {page.content}
-        </ReactMarkdown>
+        <PageRenderMarkdown content={page.content} />
       </div>
     </div>}
     {(page && isEdit) && 
