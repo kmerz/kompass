@@ -17,7 +17,7 @@ export default function ViewPage () {
   const [loading, setLoading] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
 
-  useEffect(() => { loadPage(id) }, []);
+  useEffect(() => { loadPage(id) }, [id]);
 
   const loadPage = async (id: string | undefined) => {
     try {
