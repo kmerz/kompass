@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import AuthenticatedContext from '../context/AuthenticatedContext';
+import { AuthState } from '../context/AuthenticatedContext';
 
 import * as kompassApi from "../api/kompassApi";
 
@@ -8,9 +9,9 @@ interface AuthenticatedProviderProps {
 }
 
 const AuthenticatedProvider = ({children}: AuthenticatedProviderProps) => {
-  const [isAuthenticated, setXIsAuthenticated] = useState(false);  
+  const [isAuthenticated, setXIsAuthenticated] = useState(AuthState.loading);  
 
-  const setIsAuthenticated = (state: boolean) => {
+  const setIsAuthenticated = (state: AuthState) => {
     console.log(`state: ${state}`);
     console.trace();
     setXIsAuthenticated(state);
@@ -20,9 +21,9 @@ const AuthenticatedProvider = ({children}: AuthenticatedProviderProps) => {
       async function checkAuth() {
         try {
           await kompassApi.me();
-          setIsAuthenticated(true);
+          setIsAuthenticated(AuthState.autenticated);
         } catch(err){
-          setIsAuthenticated(false);
+          setIsAuthenticated(AuthState.unauthenticated);
         }
       }
 

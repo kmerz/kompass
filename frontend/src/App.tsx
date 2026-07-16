@@ -9,7 +9,7 @@ import LoginPage from './components/LoginPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import logo from "./assets/logo.png"
 import AuthenticatedContext from "./context/AuthenticatedContext";
-import { AuthenticatedType } from "./context/AuthenticatedContext";
+import { AuthenticatedType, AuthState } from "./context/AuthenticatedContext";
 
 import * as kompassApi from "./api/kompassApi";
 
@@ -27,7 +27,7 @@ export default function Home() {
 
   const handleLogout = async () => {
     await kompassApi.logout();
-    setIsAuthenticated(false);
+    setIsAuthenticated(AuthState.unauthenticated);
     navigate("/login");
   };
 

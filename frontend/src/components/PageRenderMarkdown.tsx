@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { Link } from 'react-router-dom';
 
 import Page from "../types/Page";
 
@@ -73,9 +74,13 @@ const [displayedContent, setDisplayedContent] = useState<string>("");
     return result;
   }
 
+  const MdLink = ({href, ...rest}) => {
+    return (<Link to={href} {...rest} />);
+  };
+
   return (
     <div className="page-content">
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ a: MdLink }}>
         {displayedContent}
       </ReactMarkdown>
     </div>
