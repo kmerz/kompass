@@ -1,0 +1,8 @@
+# Copy to config.toml (which is not committed) and fill in.
+# A long random string, e.g. from: openssl rand -hex 32
+jwt_secret = "change-me"
+
+[[users]]
+username = "me"
+# argon2id hash, e.g.: echo -n 'your password' | argon2 "$(openssl rand -hex 16)" -id -e
+password_hash = "$argon2id$v=19$m=65536,t=3,p=4$..."
